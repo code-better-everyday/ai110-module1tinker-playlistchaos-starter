@@ -241,6 +241,12 @@ def add_song_sidebar():
         raw_tags = [t.strip() for t in tags_text.split(",")]
         tags = [t for t in raw_tags if t]
 
+        # Validate the stripped values: a whitespace-only entry like "   "
+        # is truthy but normalizes to "", which would save a blank song.
+        if not title.strip() or not artist.strip():
+            st.sidebar.warning("Title and Artist are required.")
+            return
+
         song: Song = {
             "title": title,
             "artist": artist,
@@ -248,11 +254,11 @@ def add_song_sidebar():
             "energy": energy,
             "tags": tags,
         }
-        if title and artist:
-            normalized = normalize_song(song)
-            all_songs = st.session_state.songs[:]
-            all_songs.append(normalized)
-            st.session_state.songs = all_songs
+        normalized = normalize_song(song)
+        all_songs = st.session_state.songs[:]
+        all_songs.append(normalized)
+        st.session_state.songs = all_songs
+        st.sidebar.success(f"Added \"{normalized['title']}\" by {normalized['artist']}.")
 
 
 def playlist_tabs(playlists):

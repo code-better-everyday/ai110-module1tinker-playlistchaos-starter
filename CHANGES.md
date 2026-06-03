@@ -29,6 +29,7 @@ The test suite has **25 assertions** and exits non-zero if any fail.
 | 4 | `random_choice_or_none` | Raised `IndexError` on an empty list despite its name | Return `None` when the list is empty |
 | 5 | `merge_playlists` | Mutated the caller's input list as a side effect (aliased `a`'s list, then `extend`ed it) | Copy the list before extending |
 | 6 | `classify_song` | Chill keywords were matched against `title` (never lowercased) instead of `genre`, so chill detection rarely fired | Match chill keywords against `genre`, symmetric with hype keywords |
+| 7 | `add_song_sidebar` (app.py) | Blank/whitespace-only Title or Artist could be saved — the guard checked raw input (`"   "` is truthy) but normalization stripped it to `""` | Validate `title.strip()`/`artist.strip()`, reject with a warning, and show a success message on add |
 
 ## Detail
 
@@ -81,3 +82,20 @@ is_chill_keyword = any(k in title for k in chill_keywords)
 # after
 is_chill_keyword = any(k in genre for k in chill_keywords)
 ```
+
+### 7 — `add_song_sidebar` (app.py)
+```python
+# before
+if title and artist:          # "   " is truthy, slips through
+    normalized = normalize_song(song)
+    ...
+
+# after
+if not title.strip() or not artist.strip():
+    st.sidebar.warning("Title and Artist are required.")
+    return
+normalized = normalize_song(song)
+...
+st.sidebar.success(f"Added \"{normalized['title']}\" by {normalized['artist']}.")
+```
+
